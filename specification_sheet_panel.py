@@ -16,7 +16,15 @@ class SPECIFICATION_SHEET_PT_panel(Panel):
     bl_category = 'Sp-Sheet'
 
     def draw(self, context):
-        self.layout.operator('specification_sheet.main', icon='BLENDER', text='specification_sheet execute')
+        layout = self.layout
+        box = layout.box()
+        box.label(text='Specification text to')
+        row = box.row()
+        row.operator('specification_sheet.object_specification_text', icon='FILE_TEXT', text='Active Object')
+        row.operator('specification_sheet.object_specification_to_selection', icon='CON_LOCLIKE', text='')
+        row = box.row()
+        row.operator('specification_sheet.collection_specification_text', icon='FILE_TEXT', text='Active Collection')
+        row.operator('specification_sheet.collection_specification_to_selection', icon='CON_LOCLIKE', text='')
 
 
 def register():

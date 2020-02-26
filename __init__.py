@@ -7,6 +7,7 @@
 from . import specification_sheet_ops
 from . import specification_sheet_panel
 from .addon import Addon
+from . import specification_sheet_params
 
 
 bl_info = {
@@ -24,6 +25,7 @@ bl_info = {
 
 def register():
     if not Addon.dev_mode():
+        specification_sheet_params.register()
         specification_sheet_ops.register()
         specification_sheet_panel.register()
     else:
@@ -34,6 +36,7 @@ def unregister():
     if not Addon.dev_mode():
         specification_sheet_panel.unregister()
         specification_sheet_ops.unregister()
+        specification_sheet_params.unregister()
 
 
 if __name__ == '__main__':
