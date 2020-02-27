@@ -25,6 +25,9 @@ class SPECIFICATION_SHEET_PT_panel(Panel):
         row = box.row()
         row.operator('specification_sheet.collection_specification_text', icon='FILE_TEXT', text='Active Collection')
         row.operator('specification_sheet.collection_specification_to_selection', icon='CON_LOCLIKE', text='')
+        box = layout.box()
+        box.label(text='Export')
+        box.operator('specification_sheet.specification_to_csv', icon='EXPORT')
 
 
 def register():

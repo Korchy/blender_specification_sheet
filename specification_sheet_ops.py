@@ -83,14 +83,32 @@ class SPECIFICATION_SHEET_OT_collection_specification_to_selection(Operator):
         return bool(context.view_layer.active_layer_collection)
 
 
+class SPECIFICATION_SHEET_OT_specification_to_csv(Operator):
+    bl_idname = 'specification_sheet.specification_to_csv'
+    bl_label = 'CSV'
+    bl_description = 'Save specificaton to CSV file'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        # export specification to csv
+        SpecificationSheet.export_to_csv(context=context)
+        return {'FINISHED'}
+
+    @classmethod
+    def poll(cls, context):
+        return bool(context.view_layer.active_layer_collection)
+
+
 def register():
     register_class(SPECIFICATION_SHEET_OT_object_specification_text)
     register_class(SPECIFICATION_SHEET_OT_collection_specification_text)
     register_class(SPECIFICATION_SHEET_OT_object_specification_to_selection)
     register_class(SPECIFICATION_SHEET_OT_collection_specification_to_selection)
+    register_class(SPECIFICATION_SHEET_OT_specification_to_csv)
 
 
 def unregister():
+    unregister_class(SPECIFICATION_SHEET_OT_specification_to_csv)
     unregister_class(SPECIFICATION_SHEET_OT_collection_specification_to_selection)
     unregister_class(SPECIFICATION_SHEET_OT_object_specification_to_selection)
     unregister_class(SPECIFICATION_SHEET_OT_collection_specification_text)
