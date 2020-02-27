@@ -17,6 +17,7 @@ class SpecificationSheet:
 
     prefix = '_sp'
     export_file_name = 'specification'
+    _field_id = 0
 
     @classmethod
     def objct_specification_text(cls, context, object_to_specificate):
@@ -43,12 +44,27 @@ class SpecificationSheet:
                     text_object.from_string(active_object.data.specification_text_link.as_string())
 
     @classmethod
+    def add_new_specification_field(cls, context, field_name=None):
+        # add specification field
+        new_field = context.scene.specification_fields.add()
+        if field_name:
+            new_field.field_name = field_name
+        else:
+            cls._field_id += 1
+            new_field.field_name = 'field.' + str(cls._field_id).zfill(3)
+
+    @classmethod
+    def remove_specification_field(cls, context, field_id):
+        # remove specification field
+        context.scene.specification_fields.remove(field_id)
+
+    @classmethod
     def export_to_csv(cls, context):
         # export specification to csv file
         objects_with_specification = (obj.data.specification_text_link for obj in context.scene.objects if hasattr(obj.data, 'specification_text_link') and obj.data.specification_text_link)
         # join by instances
         specification_list = Counter(objects_with_specification)
-        # form csv data
+        # write to csv file
         output_path = os.path.join(cls.output_path(path=context.scene.render.filepath), cls.export_file_name + '.csv')
         with open(file=output_path, mode='w', newline='') as csv_file:
             writer = csv.writer(csv_file, delimiter=';')

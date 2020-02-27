@@ -4,10 +4,14 @@
 # GitHub
 #   https://github.com/Korchy/blender_specification_sheet
 
+import bpy
+from bpy.app.handlers import persistent
+import functools
 from . import specification_sheet_ops
 from . import specification_sheet_panel
-from .addon import Addon
 from . import specification_sheet_params
+from .addon import Addon
+from .specification_sheet import SpecificationSheet
 
 
 bl_info = {
@@ -23,17 +27,40 @@ bl_info = {
 }
 
 
+@persistent
+def specification_sheet_add_default_fields(context, scene):
+    # add default specification fields
+    if hasattr(bpy.context, 'scene'):
+        if len(bpy.context.scene.specification_fields) == 0:
+            SpecificationSheet.add_new_specification_field(
+                context=bpy.context,
+                field_name='description'
+            )
+            SpecificationSheet.add_new_specification_field(
+                context=bpy.context,
+                field_name='comments'
+            )
+    else:
+        return 0.25
+
+
 def register():
     if not Addon.dev_mode():
         specification_sheet_params.register()
         specification_sheet_ops.register()
         specification_sheet_panel.register()
+        bpy.app.timers.register(functools.partial(specification_sheet_add_default_fields, bpy.context, None), first_interval=0.25)
+        # reload presets list with scene load
+        if specification_sheet_add_default_fields not in bpy.app.handlers.load_post:
+            bpy.app.handlers.load_post.append(specification_sheet_add_default_fields)
     else:
         print('It seems you are trying to use the dev version of the ' + bl_info['name'] + ' add-on. It may work not properly. Please download and use the release version!')
 
 
 def unregister():
     if not Addon.dev_mode():
+        if specification_sheet_add_default_fields in bpy.app.handlers.load_post:
+            bpy.app.handlers.load_post.remove(specification_sheet_add_default_fields)
         specification_sheet_panel.unregister()
         specification_sheet_ops.unregister()
         specification_sheet_params.unregister()

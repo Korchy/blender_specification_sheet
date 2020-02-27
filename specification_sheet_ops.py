@@ -99,15 +99,55 @@ class SPECIFICATION_SHEET_OT_specification_to_csv(Operator):
         return bool(context.view_layer.active_layer_collection)
 
 
+class  SPECIFICATION_SHEET_OT_add_new_field(Operator):
+    bl_idname = 'specification_sheet.add_new_field'
+    bl_label = 'Add new field'
+    bl_description = 'Add new specification field'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        # add new specification field
+        SpecificationSheet.add_new_specification_field(
+            context=context
+        )
+        return {'FINISHED'}
+
+
+class  SPECIFICATION_SHEET_OT_remove_active_field(Operator):
+    bl_idname = 'specification_sheet.remove_active_field'
+    bl_label = 'Remove active field'
+    bl_description = 'Remove active specification field'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        # remove active specification field
+        SpecificationSheet.remove_specification_field(
+            context=context,
+            field_id=context.scene.specification_active_field
+        )
+        return {'FINISHED'}
+
+    @classmethod
+    def poll(cls, context):
+        if 0 <= context.scene.specification_active_field < len(context.scene.specification_fields):
+            return True
+        else:
+            return False
+
+
 def register():
     register_class(SPECIFICATION_SHEET_OT_object_specification_text)
     register_class(SPECIFICATION_SHEET_OT_collection_specification_text)
     register_class(SPECIFICATION_SHEET_OT_object_specification_to_selection)
     register_class(SPECIFICATION_SHEET_OT_collection_specification_to_selection)
     register_class(SPECIFICATION_SHEET_OT_specification_to_csv)
+    register_class(SPECIFICATION_SHEET_OT_add_new_field)
+    register_class(SPECIFICATION_SHEET_OT_remove_active_field)
 
 
 def unregister():
+    unregister_class(SPECIFICATION_SHEET_OT_remove_active_field)
+    unregister_class(SPECIFICATION_SHEET_OT_add_new_field)
     unregister_class(SPECIFICATION_SHEET_OT_specification_to_csv)
     unregister_class(SPECIFICATION_SHEET_OT_collection_specification_to_selection)
     unregister_class(SPECIFICATION_SHEET_OT_object_specification_to_selection)
