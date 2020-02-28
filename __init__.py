@@ -10,6 +10,7 @@ import functools
 from . import specification_sheet_ops
 from . import specification_sheet_panel
 from . import specification_sheet_params
+from . import message_box
 from .addon import Addon
 from .specification_sheet import SpecificationSheet
 
@@ -49,6 +50,7 @@ def register():
         specification_sheet_params.register()
         specification_sheet_ops.register()
         specification_sheet_panel.register()
+        message_box.register()
         bpy.app.timers.register(functools.partial(specification_sheet_add_default_fields, bpy.context, None), first_interval=0.25)
         # reload presets list with scene load
         if specification_sheet_add_default_fields not in bpy.app.handlers.load_post:
@@ -61,6 +63,7 @@ def unregister():
     if not Addon.dev_mode():
         if specification_sheet_add_default_fields in bpy.app.handlers.load_post:
             bpy.app.handlers.load_post.remove(specification_sheet_add_default_fields)
+        message_box.unregister()
         specification_sheet_panel.unregister()
         specification_sheet_ops.unregister()
         specification_sheet_params.unregister()

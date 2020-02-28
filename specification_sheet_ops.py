@@ -5,7 +5,6 @@
 #   https://github.com/Korchy/blender_specification_sheet
 
 from bpy.types import Operator
-from bpy.props import EnumProperty
 from bpy.utils import register_class, unregister_class
 from .specification_sheet import SpecificationSheet
 
@@ -55,6 +54,7 @@ class SPECIFICATION_SHEET_OT_object_specification_to_selection(Operator):
     def execute(self, context):
         # copy specification text from active object to all the selection
         SpecificationSheet.object_specification_active_to_other(
+            context=context,
             active_object=context.active_object,
             other=context.selected_objects
         )
@@ -107,8 +107,11 @@ class  SPECIFICATION_SHEET_OT_add_new_field(Operator):
 
     def execute(self, context):
         # add new specification field
-        SpecificationSheet.add_new_specification_field(
+        field_name = SpecificationSheet.add_new_specification_field(
             context=context
+        )
+        SpecificationSheet.add_field_to_specification_templates(
+            field_name=field_name
         )
         return {'FINISHED'}
 
