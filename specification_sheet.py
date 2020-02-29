@@ -12,6 +12,8 @@ import tempfile
 
 # ToDo - и для коллекций и понять как работает collection instance (is_instancer)
 
+# ToDo - кнопка select all specificated (заполненно хоть одно поле)
+
 
 class SpecificationSheet:
 
@@ -21,42 +23,46 @@ class SpecificationSheet:
     _csv_delimiter = ';'
 
     @classmethod
-    def objct_specification_text(cls, context, object_to_specificate):
-        # show object specification text
-        if object_to_specificate:
-            text_object = cls.get_specification_text_object(
-                context=context,
-                object_to_specificate=object_to_specificate
-            )
-            # open in text editor
-            text_editor_area = next(iter(area for area in context.screen.areas if area.type == 'TEXT_EDITOR'), None)
-            if not text_editor_area:
-                bpy.ops.screen.area_split(direction='HORIZONTAL', factor=0.25)
-                text_editor_area = context.screen.areas[-1]
-                text_editor_area.type = 'TEXT_EDITOR'
-            text_editor_area.spaces.active.text = object_to_specificate.data.specification_text_link
-
-    @classmethod
-    def object_specification_active_to_other(cls, context, active_object, other: list):
-        # copy specification text from active object to all other objects
-        if active_object.data.specification_text_link:
-            for object_to_specificate in other:
-                if object_to_specificate != active_object and hasattr(object_to_specificate.data, 'specification_text_link'):
-                    text_object = cls.get_specification_text_object(
-                        context=context,
-                        object_to_specificate=object_to_specificate
-                    )
-                    text_object.from_string(active_object.data.specification_text_link.as_string())
-
-    @classmethod
-    def add_new_specification_field(cls, context, field_name=None):
+    def add_new_specification_field(cls, context, field_name=None, to_objects=True):
         # add specification field
         new_field = context.scene.specification_fields.add()
         if field_name:
             new_field.field_name = field_name
         else:
             new_field.field_name = cls.generate_new_field_name(fields=context.scene.specification_fields)
-        return new_field.field_name
+        if to_objects:
+            # add new field to all objects
+            for obj in cls._specificated_objects(context=context):
+                if new_field.field_name not in (field.name for field in obj.specification):
+                    object_field = obj.specification.add()
+                    object_field.name = new_field.field_name
+            # add new field to all collections
+            # ToDo
+
+    @classmethod
+    def remove_specification_field(cls, context, field_id, from_objects=True):
+        # remove specification field
+        field_name = context.scene.specification_fields[field_id].field_name
+        context.scene.specification_fields.remove(field_id)
+        if from_objects:
+            # remove from objects
+            for obj in cls._specificated_objects(context=context):
+                field_id = cls._id_by_name(name=field_name, fields=obj.specification)
+                if field_id is not None:
+                    obj.specification.remove(field_id)
+            # remove from collections
+            # ToDo
+
+    @classmethod
+    def on_rename_specification_field(cls, context, old_name, new_name):
+        # specification field was renamed - change field name in all specification objects
+        # objects
+        for obj in cls._specificated_objects(context=context):
+            for field in obj.specification:
+                if field.name == old_name:
+                    field.name = new_name
+        # collections
+        # ToDo
 
     @classmethod
     def generate_new_field_name(cls, fields):
@@ -70,82 +76,72 @@ class SpecificationSheet:
         return field_name
 
     @classmethod
-    def remove_specification_field(cls, context, field_id):
-        # remove specification field
-        context.scene.specification_fields.remove(field_id)
+    def object_active_to_other(cls, context, active_object, other: list):
+        # copy specification text from active object to all other objects
+        objects = cls._specificated_objects(context=context, objects=other)
+        if active_object.data in objects:
+            objects.remove(active_object.data)
+        for obj in objects:
+            for field in active_object.data.specification:
+                other_field = cls._field_by_name(name=field.name, fields=obj.specification)
+                if other_field:
+                    other_field.value = field.value
 
     @classmethod
     def export_to_csv(cls, context):
         # export specification to csv file
-        objects_with_specification = (obj.data.specification_text_link for obj in context.scene.objects if hasattr(obj.data, 'specification_text_link') and obj.data.specification_text_link)
-        # join by instances
-        specification_list = Counter(objects_with_specification)
+        # objects_with_specification = (obj.data.specification_text_link for obj in context.scene.objects if hasattr(obj.data, 'specification_text_link') and obj.data.specification_text_link)
+        # # join by instances
+        # specification_list = Counter(objects_with_specification)
+        specification_list = Counter(cls._specificated_objects(context=context, remove_instances=False))
+        print(dict(specification_list))
         # write to csv file
         output_path = os.path.join(cls.output_path(path=context.scene.render.filepath), cls._export_file_name + '.csv')
         try:
             with open(file=output_path, mode='w', newline='') as csv_file:
                 writer = csv.writer(csv_file, delimiter=cls._csv_delimiter)
                 # header
-                writer.writerow(cls._specification_header_template(context=context))
+                writer.writerow(cls._export_header(context=context))
                 # content
                 for i, item in enumerate(dict(specification_list).items()):
-                    writer.writerow([i + 1, item[0].as_string(), item[1]])
+                    # writer.writerow([i + 1, item[0].as_string(), item[1]])
+                    writer.writerow([i + 1] + cls._export_row(context=context, fields=item[0].specification) + [item[1]])
         except IOError as error:
             bpy.ops.specification_sheet.messagebox('INVOKE_DEFAULT', message='Can\'t write to file!')
 
     @classmethod
-    def get_specification_text_object(cls, context, object_to_specificate):
-        # get text object for object_to_specificate
-        if object_to_specificate.data.specification_text_link \
-                and object_to_specificate.data.specification_text_link in bpy.data.texts[:]:
-            text_object = object_to_specificate.data.specification_text_link
-        else:
-            # create new
-            text_object = bpy.data.texts.new(name=cls._prefix)
-            text_object.from_string(cls._specification_text_template(context=context))
-            object_to_specificate.data.specification_text_link = text_object
-        return text_object
-
-    @classmethod
-    def _specification_header_template(cls, context):
-        # fields for header for specification table
-        text_header = ['',] + [field.field_name for field in context.scene.specification_fields] + ['',]
+    def _export_header(cls, context):
+        # header for export specification table
+        line_break = context.preferences.addons[__package__].preferences.line_break_char
+        text_header = ['',] + [field.field_name.replace(line_break, '\n') for field in context.scene.specification_fields] + ['',]
         return text_header
 
     @classmethod
-    def _specification_text_template(cls, context):
-        # generate text template for item specification
-        text_template = ''
-        for field in context.scene.specification_fields:
-            text_template += ('\n' if text_template else '') + cls._format_field_name(field_name=field.field_name)
-        return text_template
+    def _export_row(cls, context, fields):
+        # row for export specification table
+        line_break = context.preferences.addons[__package__].preferences.line_break_char
+        row = [field.value.replace(line_break, '\n') for field in fields]
+        return row
 
     @staticmethod
-    def _format_field_name(field_name):
-        # return formatted field name for specification template
-        return '@' + field_name + ':'
+    def _specificated_objects(context, objects=None, remove_instances=True):
+        # return all objects with specification without instances
+        if not objects:
+            objects = context.scene.objects     # all from scene
+        if remove_instances:
+            return {obj.data for obj in objects if hasattr(obj.data, 'specification')}
+        else:
+            return (obj.data for obj in objects if hasattr(obj.data, 'specification'))
 
-    @classmethod
-    def add_field_to_specification_templates(cls, field_name):
-        # add new field name to specification text objects
-        specification_text_objects = (text_object for text_object in bpy.data.texts if cls._prefix in text_object.name)
-        for text_object in specification_text_objects:
-            if cls._format_field_name(field_name=field_name) not in text_object.as_string():
-                text_object.from_string(
-                    string=text_object.as_string() + ('\n' if text_object.as_string() else '') + cls._format_field_name(field_name=field_name)
-                )
+    @staticmethod
+    def _id_by_name(name, fields):
+        # return field id by field name
+        return next((f[0] for f in enumerate(fields) if f[1].name == name), None)
 
-    @classmethod
-    def change_field_in_specification_templates(cls, old_name, new_name):
-        # change field name in all specification text objects
-        specification_text_objects = (text_object for text_object in bpy.data.texts if cls._prefix in text_object.name)
-        for text_object in specification_text_objects:
-            text_object.from_string(
-                string=text_object.as_string().replace(
-                    cls._format_field_name(field_name=old_name),
-                    cls._format_field_name(field_name=new_name)
-                )
-            )
+    @staticmethod
+    def _field_by_name(name, fields):
+        # return field by field name
+        return next((field for field in fields if field.name == name), None)
 
     @staticmethod
     def output_path(path):

@@ -4,7 +4,7 @@
 # GitHub
 #   https://github.com/Korchy/blender_specification_sheet
 
-from bpy.props import CollectionProperty, PointerProperty, StringProperty, IntProperty
+from bpy.props import CollectionProperty, PointerProperty, StringProperty, IntProperty, BoolProperty
 from bpy.types import PropertyGroup, Mesh, Text, Scene
 from bpy.utils import register_class, unregister_class
 from .specification_sheet import SpecificationSheet
@@ -32,16 +32,33 @@ class SPECIFICATION_SHEET_fields(PropertyGroup):
                 # field name already existed
                 self.field_name = self.field_name_old
             else:
-                SpecificationSheet.change_field_in_specification_templates(
+                SpecificationSheet.on_rename_specification_field(
+                    context=context,
                     old_name=self.field_name_old,
                     new_name=self.field_name
                 )
         self.field_name_old = self.field_name
 
 
+class SPECIFICATION_SHEET_object_fields(PropertyGroup):
+
+    name: StringProperty(
+        default=''
+    )
+
+    value: StringProperty(
+        default=''
+    )
+
+
 def register():
     register_class(SPECIFICATION_SHEET_fields)
-    Mesh.specification_text_link = PointerProperty(type=Text)
+    register_class(SPECIFICATION_SHEET_object_fields)
+    # Mesh.specification_text_link = PointerProperty(type=Text)
+    Mesh.specification = CollectionProperty(type=SPECIFICATION_SHEET_object_fields)
+    Mesh.specification_active_field = IntProperty(
+        default=0
+    )
     Scene.specification_fields = CollectionProperty(type=SPECIFICATION_SHEET_fields)
     Scene.specification_active_field = IntProperty(
         default=0
@@ -49,6 +66,10 @@ def register():
 
 
 def unregister():
+    del Scene.specification_active_field
     del Scene.specification_fields
-    del Mesh.specification_text_link
+    # del Mesh.specification_text_link
+    del Mesh.specification_active_field
+    del Mesh.specification
+    unregister_class(SPECIFICATION_SHEET_object_fields)
     unregister_class(SPECIFICATION_SHEET_fields)
