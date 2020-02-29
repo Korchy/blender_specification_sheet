@@ -4,8 +4,8 @@
 # GitHub
 #   https://github.com/Korchy/blender_specification_sheet
 
-from bpy.props import CollectionProperty, PointerProperty, StringProperty, IntProperty, BoolProperty
-from bpy.types import PropertyGroup, Mesh, Text, Scene
+from bpy.props import CollectionProperty, StringProperty, IntProperty, BoolProperty
+from bpy.types import PropertyGroup, Mesh, Scene
 from bpy.utils import register_class, unregister_class
 from .specification_sheet import SpecificationSheet
 
@@ -54,7 +54,6 @@ class SPECIFICATION_SHEET_object_fields(PropertyGroup):
 def register():
     register_class(SPECIFICATION_SHEET_fields)
     register_class(SPECIFICATION_SHEET_object_fields)
-    # Mesh.specification_text_link = PointerProperty(type=Text)
     Mesh.specification = CollectionProperty(type=SPECIFICATION_SHEET_object_fields)
     Mesh.specification_active_field = IntProperty(
         default=0
@@ -68,7 +67,6 @@ def register():
 def unregister():
     del Scene.specification_active_field
     del Scene.specification_fields
-    # del Mesh.specification_text_link
     del Mesh.specification_active_field
     del Mesh.specification
     unregister_class(SPECIFICATION_SHEET_object_fields)

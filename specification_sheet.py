@@ -90,11 +90,7 @@ class SpecificationSheet:
     @classmethod
     def export_to_csv(cls, context):
         # export specification to csv file
-        # objects_with_specification = (obj.data.specification_text_link for obj in context.scene.objects if hasattr(obj.data, 'specification_text_link') and obj.data.specification_text_link)
-        # # join by instances
-        # specification_list = Counter(objects_with_specification)
         specification_list = Counter(cls._specificated_objects(context=context, remove_instances=False))
-        print(dict(specification_list))
         # write to csv file
         output_path = os.path.join(cls.output_path(path=context.scene.render.filepath), cls._export_file_name + '.csv')
         try:
@@ -104,7 +100,6 @@ class SpecificationSheet:
                 writer.writerow(cls._export_header(context=context))
                 # content
                 for i, item in enumerate(dict(specification_list).items()):
-                    # writer.writerow([i + 1, item[0].as_string(), item[1]])
                     writer.writerow([i + 1] + cls._export_row(context=context, fields=item[0].specification) + [item[1]])
         except IOError as error:
             bpy.ops.specification_sheet.messagebox('INVOKE_DEFAULT', message='Can\'t write to file!')
@@ -113,14 +108,14 @@ class SpecificationSheet:
     def _export_header(cls, context):
         # header for export specification table
         line_break = context.preferences.addons[__package__].preferences.line_break_char
-        text_header = ['',] + [field.field_name.replace(line_break, '\n') for field in context.scene.specification_fields] + ['',]
+        text_header = ['',] + [field.field_name.replace(line_break, '\n') for field in context.scene.specification_fields] + ['Amount',]
         return text_header
 
     @classmethod
     def _export_row(cls, context, fields):
         # row for export specification table
         line_break = context.preferences.addons[__package__].preferences.line_break_char
-        row = [field.value.replace(line_break, '\n') for field in fields]
+        row = [field.value.replace(line_break, '\n') if field.name in cls._specification_filds(context=context) else '' for field in fields]
         return row
 
     @staticmethod
@@ -132,6 +127,11 @@ class SpecificationSheet:
             return {obj.data for obj in objects if hasattr(obj.data, 'specification')}
         else:
             return (obj.data for obj in objects if hasattr(obj.data, 'specification'))
+
+    @staticmethod
+    def _specification_filds(context):
+        # return specification field names
+        return  (field.field_name for field in context.scene.specification_fields)
 
     @staticmethod
     def _id_by_name(name, fields):
