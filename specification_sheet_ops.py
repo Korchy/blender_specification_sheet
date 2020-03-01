@@ -100,15 +100,31 @@ class  SPECIFICATION_SHEET_OT_remove_active_field(Operator):
             return False
 
 
+class  SPECIFICATION_SHEET_OT_fields_to_objects(Operator):
+    bl_idname = 'specification_sheet.fields_to_objects'
+    bl_label = 'Translate specification fields to objects'
+    bl_description = 'Translate specification fields to objects'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        # translate specification fields to objects
+        SpecificationSheet.fields_to_objects(
+            context=context
+        )
+        return {'FINISHED'}
+
+
 def register():
     register_class(SPECIFICATION_SHEET_OT_object_active_to_selection)
     register_class(SPECIFICATION_SHEET_OT_collection_active_to_selection)
     register_class(SPECIFICATION_SHEET_OT_specification_to_csv)
     register_class(SPECIFICATION_SHEET_OT_add_new_field)
     register_class(SPECIFICATION_SHEET_OT_remove_active_field)
+    register_class(SPECIFICATION_SHEET_OT_fields_to_objects)
 
 
 def unregister():
+    unregister_class(SPECIFICATION_SHEET_OT_fields_to_objects)
     unregister_class(SPECIFICATION_SHEET_OT_remove_active_field)
     unregister_class(SPECIFICATION_SHEET_OT_add_new_field)
     unregister_class(SPECIFICATION_SHEET_OT_specification_to_csv)

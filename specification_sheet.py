@@ -54,6 +54,16 @@ class SpecificationSheet:
             # ToDo
 
     @classmethod
+    def fields_to_objects(cls, context):
+        # translate specification fields to objects
+        # objects
+        for sp_object in cls._specificated_objects(context=context):
+            for field in context.scene.specification_fields:
+                cls._add_field_to_object(sp_object=sp_object, field_name=field.field_name)
+        # collections
+        # ToDo
+
+    @classmethod
     def on_rename_specification_field(cls, context, old_name, new_name):
         # specification field was renamed - change field name in all specification objects
         # objects
@@ -75,6 +85,13 @@ class SpecificationSheet:
             field_name = 'field.' + str(cls._field_id).zfill(3)
         return field_name
 
+    @staticmethod
+    def _add_field_to_object(sp_object, field_name):
+        # add new specification field to object
+        if field_name not in (field.name for field in sp_object.specification):
+            field = sp_object.specification.add()
+            field.name = field_name
+
     @classmethod
     def object_active_to_other(cls, context, active_object, other: list):
         # copy specification text from active object to all other objects
@@ -88,19 +105,31 @@ class SpecificationSheet:
                     other_field.value = field.value
 
     @classmethod
-    def export_to_csv(cls, context):
+    def export_to_csv(cls, context, object_names=False):
         # export specification to csv file
+        if hasattr(context.window_manager, 'specification_add_obj_names'):
+            object_names = context.window_manager.specification_add_obj_names
         specification_list = Counter(cls._specificated_objects(context=context, remove_instances=False))
         # write to csv file
         output_path = os.path.join(cls.output_path(path=context.scene.render.filepath), cls._export_file_name + '.csv')
+        # header
+        header = ['',] + cls._export_header(context=context) + ['Amount',]
+        if object_names:
+            header.insert(1, 'Objects')
+        # body
+        body = []
+        for i, item in enumerate(dict(specification_list).items()):
+            if not item[0].specification_skip:
+                row = [i + 1,] + cls._export_row(context=context, fields=item[0].specification) + [item[1],]
+                if object_names:
+                    row.insert(1, item[0].name)
+                body.append(row)
         try:
             with open(file=output_path, mode='w', newline='') as csv_file:
                 writer = csv.writer(csv_file, delimiter=cls._csv_delimiter)
-                # header
-                writer.writerow(cls._export_header(context=context))
-                # content
-                for i, item in enumerate(dict(specification_list).items()):
-                    writer.writerow([i + 1] + cls._export_row(context=context, fields=item[0].specification) + [item[1]])
+                writer.writerow(header)
+                for row in body:
+                    writer.writerow(row)
         except IOError as error:
             bpy.ops.specification_sheet.messagebox('INVOKE_DEFAULT', message='Can\'t write to file!')
 
@@ -108,7 +137,7 @@ class SpecificationSheet:
     def _export_header(cls, context):
         # header for export specification table
         line_break = context.preferences.addons[__package__].preferences.line_break_char
-        text_header = ['',] + [field.field_name.replace(line_break, '\n') for field in context.scene.specification_fields] + ['Amount',]
+        text_header = [field.field_name.replace(line_break, '\n') for field in context.scene.specification_fields]
         return text_header
 
     @classmethod

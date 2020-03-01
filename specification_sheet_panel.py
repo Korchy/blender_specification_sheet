@@ -10,7 +10,7 @@ from bpy.utils import register_class, unregister_class
 
 class SPECIFICATION_SHEET_PT_panel(Panel):
     bl_idname = 'SPECIFICATION_SHEET_PT_panel'
-    bl_label = 'Sp-Sheet'
+    bl_label = 'Specification'
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'Sp-Sheet'
@@ -20,20 +20,44 @@ class SPECIFICATION_SHEET_PT_panel(Panel):
         box = layout.box()
         box.label(text='Export')
         box.operator('specification_sheet.specification_to_csv', icon='EXPORT')
-        box = layout.box()
-        box.label(text='Specification fields')
-        row = box.row()
+        box.prop(data=context.window_manager, property='specification_add_obj_names', text='With objects names')
+
+
+class SPECIFICATION_SHEET_PT_fields_panel(Panel):
+    bl_idname = 'SPECIFICATION_SHEET_PT_fields_panel'
+    bl_label = 'Specification Fields'
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Sp-Sheet'
+
+    def draw(self, context):
+        row = self.layout.row()
         row.template_list('SPECIFICATION_SHEET_UL_presets_list', 'The_List', context.scene, 'specification_fields', context.scene, 'specification_active_field')
         col = row.column(align=True)
         col.operator('specification_sheet.add_new_field', icon='ADD', text='')
         col.operator('specification_sheet.remove_active_field', icon='REMOVE', text='')
-        if context.active_object and hasattr(context.active_object.data, 'specification'):
-            box = layout.box()
-            box.label(text='Active Object')
-            row = box.row()
-            row.template_list('SPECIFICATION_SHEET_UL_object_fields', 'object_fields', context.active_object.data, 'specification', context.active_object.data, 'specification_active_field')
-            col = row.column(align=True)
-            col.operator('specification_sheet.object_active_to_selection', icon='CON_LOCLIKE', text='')
+        col.separator()
+        col.operator('specification_sheet.fields_to_objects', icon='CON_LOCLIKE', text='')
+
+
+class SPECIFICATION_SHEET_PT_object_panel(Panel):
+    bl_idname = 'SPECIFICATION_SHEET_PT_object_panel'
+    bl_label = 'Active Object'
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Sp-Sheet'
+
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.template_list('SPECIFICATION_SHEET_UL_object_fields', 'object_fields', context.active_object.data, 'specification', context.active_object.data, 'specification_active_field')
+        col = row.column(align=True)
+        col.operator('specification_sheet.object_active_to_selection', icon='CON_LOCLIKE', text='')
+        layout.prop(data=context.active_object.data, property='specification_skip', text='Skip in specification list')
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object and hasattr(context.active_object.data, 'specification')
 
 
 class SPECIFICATION_SHEET_UL_presets_list(UIList):
@@ -54,6 +78,8 @@ class SPECIFICATION_SHEET_UL_object_fields(UIList):
 
 def register():
     register_class(SPECIFICATION_SHEET_PT_panel)
+    register_class(SPECIFICATION_SHEET_PT_fields_panel)
+    register_class(SPECIFICATION_SHEET_PT_object_panel)
     register_class(SPECIFICATION_SHEET_UL_presets_list)
     register_class(SPECIFICATION_SHEET_UL_object_fields)
 
@@ -61,4 +87,6 @@ def register():
 def unregister():
     unregister_class(SPECIFICATION_SHEET_UL_object_fields)
     unregister_class(SPECIFICATION_SHEET_UL_presets_list)
+    unregister_class(SPECIFICATION_SHEET_PT_object_panel)
+    unregister_class(SPECIFICATION_SHEET_PT_fields_panel)
     unregister_class(SPECIFICATION_SHEET_PT_panel)
