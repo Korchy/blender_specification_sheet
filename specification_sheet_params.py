@@ -5,7 +5,7 @@
 #   https://github.com/Korchy/blender_specification_sheet
 
 from bpy.props import CollectionProperty, StringProperty, IntProperty, BoolProperty
-from bpy.types import PropertyGroup, Mesh, Scene, WindowManager
+from bpy.types import PropertyGroup, Mesh, Collection, Scene, WindowManager
 from bpy.utils import register_class, unregister_class
 from .specification_sheet import SpecificationSheet
 
@@ -62,6 +62,14 @@ def register():
         description='Skip this object in specification the list',
         default=False
     )
+    Collection.specification = CollectionProperty(type=SPECIFICATION_SHEET_object_fields)
+    Collection.specification_active_field = IntProperty(
+        default=0
+    )
+    Collection.specification_skip = BoolProperty(
+        description='Skip this object in specification the list',
+        default=False
+    )
     Scene.specification_fields = CollectionProperty(type=SPECIFICATION_SHEET_fields)
     Scene.specification_active_field = IntProperty(
         default=0
@@ -76,6 +84,9 @@ def unregister():
     del WindowManager.specification_add_obj_names
     del Scene.specification_active_field
     del Scene.specification_fields
+    del Collection.specification_skip
+    del Collection.specification_active_field
+    del Collection.specification
     del Mesh.specification_skip
     del Mesh.specification_active_field
     del Mesh.specification

@@ -44,7 +44,7 @@ class SPECIFICATION_SHEET_OT_collection_active_to_selection(Operator):
 
     @classmethod
     def poll(cls, context):
-        return bool(context.view_layer.active_layer_collection)
+        return bool(context.view_layer.active_layer_collection.collection)
 
 
 class SPECIFICATION_SHEET_OT_specification_to_csv(Operator):
@@ -71,7 +71,7 @@ class  SPECIFICATION_SHEET_OT_add_new_field(Operator):
 
     def execute(self, context):
         # add new specification field
-        field_name = SpecificationSheet.add_new_specification_field(
+        SpecificationSheet.add_new_specification_field(
             context=context,
             to_objects=True
         )

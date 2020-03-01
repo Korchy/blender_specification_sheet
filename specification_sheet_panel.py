@@ -37,7 +37,7 @@ class SPECIFICATION_SHEET_PT_fields_panel(Panel):
         col.operator('specification_sheet.add_new_field', icon='ADD', text='')
         col.operator('specification_sheet.remove_active_field', icon='REMOVE', text='')
         col.separator()
-        col.operator('specification_sheet.fields_to_objects', icon='CON_LOCLIKE', text='')
+        col.operator('specification_sheet.fields_to_objects', icon='MOD_PARTICLES', text='')
 
 
 class SPECIFICATION_SHEET_PT_object_panel(Panel):
@@ -50,7 +50,14 @@ class SPECIFICATION_SHEET_PT_object_panel(Panel):
     def draw(self, context):
         layout = self.layout
         row = layout.row()
-        row.template_list('SPECIFICATION_SHEET_UL_object_fields', 'object_fields', context.active_object.data, 'specification', context.active_object.data, 'specification_active_field')
+        row.template_list(
+            'SPECIFICATION_SHEET_UL_object_fields',
+            'object_fields',
+            context.active_object.data,
+            'specification',
+            context.active_object.data,
+            'specification_active_field'
+        )
         col = row.column(align=True)
         col.operator('specification_sheet.object_active_to_selection', icon='CON_LOCLIKE', text='')
         layout.prop(data=context.active_object.data, property='specification_skip', text='Skip in specification list')
@@ -58,6 +65,33 @@ class SPECIFICATION_SHEET_PT_object_panel(Panel):
     @classmethod
     def poll(cls, context):
         return context.active_object and hasattr(context.active_object.data, 'specification')
+
+
+class SPECIFICATION_SHEET_PT_collections_panel(Panel):
+    bl_idname = 'SPECIFICATION_SHEET_PT_collections_panel'
+    bl_label = 'Active Collection'
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Sp-Sheet'
+
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.template_list(
+            'SPECIFICATION_SHEET_UL_object_fields',
+            'object_fields',
+            context.view_layer.active_layer_collection.collection,
+            'specification',
+            context.view_layer.active_layer_collection.collection,
+            'specification_active_field'
+        )
+        col = row.column(align=True)
+        col.operator('specification_sheet.collection_active_to_selection', icon='CON_LOCLIKE', text='')
+        layout.prop(data=context.view_layer.active_layer_collection.collection, property='specification_skip', text='Skip in specification list')
+
+    @classmethod
+    def poll(cls, context):
+        return context.view_layer.active_layer_collection and hasattr(context.view_layer.active_layer_collection.collection, 'specification')
 
 
 class SPECIFICATION_SHEET_UL_presets_list(UIList):
@@ -80,6 +114,7 @@ def register():
     register_class(SPECIFICATION_SHEET_PT_panel)
     register_class(SPECIFICATION_SHEET_PT_fields_panel)
     register_class(SPECIFICATION_SHEET_PT_object_panel)
+    register_class(SPECIFICATION_SHEET_PT_collections_panel)
     register_class(SPECIFICATION_SHEET_UL_presets_list)
     register_class(SPECIFICATION_SHEET_UL_object_fields)
 
@@ -87,6 +122,7 @@ def register():
 def unregister():
     unregister_class(SPECIFICATION_SHEET_UL_object_fields)
     unregister_class(SPECIFICATION_SHEET_UL_presets_list)
+    unregister_class(SPECIFICATION_SHEET_PT_collections_panel)
     unregister_class(SPECIFICATION_SHEET_PT_object_panel)
     unregister_class(SPECIFICATION_SHEET_PT_fields_panel)
     unregister_class(SPECIFICATION_SHEET_PT_panel)
