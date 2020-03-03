@@ -31,22 +31,6 @@ class SPECIFICATION_SHEET_OT_object_active_to_selection(Operator):
                and len(context.selected_objects) > 1
 
 
-class SPECIFICATION_SHEET_OT_collection_active_to_selection(Operator):
-    bl_idname = 'specification_sheet.collection_active_to_selection'
-    bl_label = 'Collection: active to selection'
-    bl_description = 'Copy specification text from active collection to all selection'
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        # copy specification text from active collection to all the selection
-        # ToDo
-        return {'FINISHED'}
-
-    @classmethod
-    def poll(cls, context):
-        return bool(context.view_layer.active_layer_collection.collection)
-
-
 class SPECIFICATION_SHEET_OT_specification_to_csv(Operator):
     bl_idname = 'specification_sheet.specification_to_csv'
     bl_label = 'CSV'
@@ -116,7 +100,6 @@ class  SPECIFICATION_SHEET_OT_fields_to_objects(Operator):
 
 def register():
     register_class(SPECIFICATION_SHEET_OT_object_active_to_selection)
-    register_class(SPECIFICATION_SHEET_OT_collection_active_to_selection)
     register_class(SPECIFICATION_SHEET_OT_specification_to_csv)
     register_class(SPECIFICATION_SHEET_OT_add_new_field)
     register_class(SPECIFICATION_SHEET_OT_remove_active_field)
@@ -128,5 +111,4 @@ def unregister():
     unregister_class(SPECIFICATION_SHEET_OT_remove_active_field)
     unregister_class(SPECIFICATION_SHEET_OT_add_new_field)
     unregister_class(SPECIFICATION_SHEET_OT_specification_to_csv)
-    unregister_class(SPECIFICATION_SHEET_OT_collection_active_to_selection)
     unregister_class(SPECIFICATION_SHEET_OT_object_active_to_selection)

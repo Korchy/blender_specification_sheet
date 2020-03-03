@@ -86,7 +86,7 @@ class SPECIFICATION_SHEET_PT_collections_panel(Panel):
             'specification_active_field'
         )
         col = row.column(align=True)
-        col.operator('specification_sheet.collection_active_to_selection', icon='CON_LOCLIKE', text='')
+        col.separator(factor=3.0)
         layout.prop(data=context.view_layer.active_layer_collection.collection, property='specification_skip', text='Skip in specification list')
 
     @classmethod

@@ -34,10 +34,13 @@ class SpecificationSheet:
             # add new field to all objects
             for obj in cls._specificated_objects(context=context):
                 if new_field.field_name not in (field.name for field in obj.specification):
-                    object_field = obj.specification.add()
-                    object_field.name = new_field.field_name
+                    field = obj.specification.add()
+                    field.name = new_field.field_name
             # add new field to all collections
-            # ToDo
+            for collection in cls._scene_collections(context=context):
+                if new_field.field_name not in (field.name for field in collection.specification):
+                    field = collection.specification.add()
+                    field.name = new_field.field_name
 
     @classmethod
     def remove_specification_field(cls, context, field_id, from_objects=True):
@@ -52,6 +55,10 @@ class SpecificationSheet:
                     obj.specification.remove(field_id)
             # remove from collections
             # ToDo
+            for collection in cls._scene_collections(context=context):
+                field_id = cls._id_by_name(name=field_name, fields=collection.specification)
+                if field_id is not None:
+                    collection.specification.remove(field_id)
 
     @classmethod
     def fields_to_objects(cls, context):
@@ -61,7 +68,9 @@ class SpecificationSheet:
             for field in context.scene.specification_fields:
                 cls._add_field_to_object(sp_object=sp_object, field_name=field.field_name)
         # collections
-        # ToDo
+        for collection in cls._scene_collections(context=context):
+            for field in context.scene.specification_fields:
+                cls._add_field_to_object(sp_object=collection, field_name=field.field_name)
 
     @classmethod
     def on_rename_specification_field(cls, context, old_name, new_name):
@@ -72,7 +81,10 @@ class SpecificationSheet:
                 if field.name == old_name:
                     field.name = new_name
         # collections
-        # ToDo
+        for collection in cls._scene_collections(context=context):
+            for field in collection.specification:
+                if field.name == old_name:
+                    field.name = new_name
 
     @classmethod
     def generate_new_field_name(cls, fields):
@@ -87,7 +99,7 @@ class SpecificationSheet:
 
     @staticmethod
     def _add_field_to_object(sp_object, field_name):
-        # add new specification field to object
+        # add new specification field to object/collection
         if field_name not in (field.name for field in sp_object.specification):
             field = sp_object.specification.add()
             field.name = field_name
@@ -144,7 +156,7 @@ class SpecificationSheet:
     def _export_row(cls, context, fields):
         # row for export specification table
         line_break = context.preferences.addons[__package__].preferences.line_break_char
-        row = [field.value.replace(line_break, '\n') if field.name in cls._specification_filds(context=context) else '' for field in fields]
+        row = [field.value.replace(line_break, '\n') if field.name in cls._specification_fields(context=context) else '' for field in fields]
         return row
 
     @staticmethod
@@ -157,10 +169,15 @@ class SpecificationSheet:
         else:
             return (obj.data for obj in objects if hasattr(obj.data, 'specification'))
 
+    @classmethod
+    def _scene_collections(cls, context):
+        # return all scene colelctions
+        return (collection for collection in bpy.data.collections)
+
     @staticmethod
-    def _specification_filds(context):
+    def _specification_fields(context):
         # return specification field names
-        return  (field.field_name for field in context.scene.specification_fields)
+        return (field.field_name for field in context.scene.specification_fields)
 
     @staticmethod
     def _id_by_name(name, fields):
