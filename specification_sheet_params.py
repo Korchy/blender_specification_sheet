@@ -78,6 +78,10 @@ def register():
         description='Add object names to specification list',
         default=False
     )
+    WindowManager.specification_skip_empty = BoolProperty(
+        description='Skip objects with empty specification fields',
+        default=False
+    )
 
 
 def unregister():

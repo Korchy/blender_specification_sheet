@@ -21,6 +21,7 @@ class SPECIFICATION_SHEET_PT_panel(Panel):
         box.label(text='Export')
         box.operator('specification_sheet.specification_to_csv', icon='EXPORT')
         box.prop(data=context.window_manager, property='specification_add_obj_names', text='With objects names')
+        box.prop(data=context.window_manager, property='specification_skip_empty', text='Skip empty')
 
 
 class SPECIFICATION_SHEET_PT_fields_panel(Panel):

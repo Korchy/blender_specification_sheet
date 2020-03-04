@@ -10,7 +10,7 @@ import csv
 import os
 import tempfile
 
-# ToDo - и для коллекций и понять как работает collection instance (is_instancer)
+# ToDo - понять как работает collection instance (is_instancer)
 
 # ToDo - кнопка select all specificated (заполненно хоть одно поле)
 
@@ -54,7 +54,6 @@ class SpecificationSheet:
                 if field_id is not None:
                     obj.specification.remove(field_id)
             # remove from collections
-            # ToDo
             for collection in cls._scene_collections(context=context):
                 field_id = cls._id_by_name(name=field_name, fields=collection.specification)
                 if field_id is not None:
@@ -121,7 +120,6 @@ class SpecificationSheet:
         # export specification to csv file
         if hasattr(context.window_manager, 'specification_add_obj_names'):
             object_names = context.window_manager.specification_add_obj_names
-        specification_list = Counter(cls._specificated_objects(context=context, remove_instances=False))
         # write to csv file
         output_path = os.path.join(cls.output_path(path=context.scene.render.filepath), cls._export_file_name + '.csv')
         # header
@@ -130,12 +128,32 @@ class SpecificationSheet:
             header.insert(1, 'Objects')
         # body
         body = []
-        for i, item in enumerate(dict(specification_list).items()):
-            if not item[0].specification_skip:
-                row = [i + 1,] + cls._export_row(context=context, fields=item[0].specification) + [item[1],]
+        # objects with counted instances
+        sp_objects = Counter(cls._specificated_objects(context=context, remove_instances=False))
+        i = 1
+        for item in dict(sp_objects).items():
+            if not item[0].specification_skip and not (context.window_manager.specification_skip_empty and cls._empty(item[0].specification)):
+                row = [i,] + cls._export_row(context=context, fields=item[0].specification) + [item[1],]
                 if object_names:
                     row.insert(1, item[0].name)
                 body.append(row)
+                i += 1
+        # collections with counted instances
+        sp_collection_instances = cls._collection_instances(context=context)
+        sp_collection_instances_all = []
+        for col in sp_collection_instances:
+            sp_collection_instances_all += cls._collections_inner(collection=col)
+        # collections + collection instances + inner collections in instances
+        sp_collections = Counter(cls._scene_collections(context=context)) + \
+            Counter(cls._collection_instances(context=context)) + \
+            Counter(sp_collection_instances_all)
+        for item in dict(sp_collections).items():
+            if not item[0].specification_skip and not (context.window_manager.specification_skip_empty and cls._empty(item[0].specification)):
+                row = [i,] + cls._export_row(context=context, fields=item[0].specification) + [item[1],]
+                if object_names:
+                    row.insert(1, item[0].name)
+                body.append(row)
+                i += 1
         try:
             with open(file=output_path, mode='w', newline='') as csv_file:
                 writer = csv.writer(csv_file, delimiter=cls._csv_delimiter)
@@ -171,13 +189,37 @@ class SpecificationSheet:
 
     @classmethod
     def _scene_collections(cls, context):
-        # return all scene colelctions
+        # return all scene collections
         return (collection for collection in bpy.data.collections)
+
+    @classmethod
+    def _collection_instances(cls, context):
+        # return all collections for collection instances
+        return (c_instance.instance_collection for c_instance in context.scene.objects if c_instance.instance_collection)
+
+    @classmethod
+    def _collections_all(cls, collection, col_list):
+        # get all collections on all levels of collection
+        col_list.append(collection)
+        for sub_collection in collection.children:
+            cls._collections_all(collection=sub_collection, col_list=col_list)
+
+    @classmethod
+    def _collections_inner(cls, collection):
+        # get all inner collections on all levels of collection
+        col_list = []
+        cls._collections_all(collection=collection, col_list=col_list)
+        return col_list[1:]
 
     @staticmethod
     def _specification_fields(context):
         # return specification field names
         return (field.field_name for field in context.scene.specification_fields)
+
+    @staticmethod
+    def _empty(fields):
+        # check if all fields are empty
+        return not bool(next((field.value for field in fields if field.value), None))
 
     @staticmethod
     def _id_by_name(name, fields):
