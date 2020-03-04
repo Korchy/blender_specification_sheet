@@ -4,7 +4,7 @@
 # GitHub
 #   https://github.com/Korchy/blender_specification_sheet
 
-from bpy.props import CollectionProperty, StringProperty, IntProperty, BoolProperty
+from bpy.props import CollectionProperty, StringProperty, IntProperty, BoolProperty, EnumProperty
 from bpy.types import PropertyGroup, Mesh, Collection, Scene, WindowManager
 from bpy.utils import register_class, unregister_class
 from .specification_sheet import SpecificationSheet
@@ -80,11 +80,21 @@ def register():
     )
     WindowManager.specification_skip_empty = BoolProperty(
         description='Skip objects with empty specification fields',
-        default=False
+        default=True
+    )
+    WindowManager.specification_object_types = EnumProperty(
+        items=[
+            ('OBJECTS', 'OBJECTS', 'OBJECTS'),
+            ('COLLECTIONS', 'COLLECTIONS', 'COLLECTIONS')
+        ],
+        default={'OBJECTS', 'COLLECTIONS'},
+        options={'ENUM_FLAG'}
     )
 
 
 def unregister():
+    del WindowManager.specification_object_types
+    del WindowManager.specification_skip_empty
     del WindowManager.specification_add_obj_names
     del Scene.specification_active_field
     del Scene.specification_fields

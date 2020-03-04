@@ -118,47 +118,11 @@ class SpecificationSheet:
     @classmethod
     def export_to_csv(cls, context, object_names=False):
         # export specification to csv file
-        if hasattr(context.window_manager, 'specification_add_obj_names'):
-            object_names = context.window_manager.specification_add_obj_names
-        # write to csv file
         output_path = os.path.join(cls.output_path(path=context.scene.render.filepath), cls._export_file_name + '.csv')
-        # header
-        header = ['',] + cls._export_header(context=context) + ['Amount',]
-        if object_names:
-            header.insert(1, 'Objects')
-        # body
-        body = []
-        # objects with counted instances
-        sp_objects = Counter(cls._specificated_objects(context=context, remove_instances=False))
-        i = 1
-        for item in dict(sp_objects).items():
-            if not item[0].specification_skip and not (context.window_manager.specification_skip_empty and cls._empty(item[0].specification)):
-                row = [i,] + cls._export_row(context=context, fields=item[0].specification) + [item[1],]
-                if object_names:
-                    row.insert(1, item[0].name)
-                body.append(row)
-                i += 1
-        # collections with counted instances
-        sp_collection_instances = cls._collection_instances(context=context)
-        sp_collection_instances_all = []
-        for col in sp_collection_instances:
-            sp_collection_instances_all += cls._collections_inner(collection=col)
-        # collections + collection instances + inner collections in instances
-        sp_collections = Counter(cls._scene_collections(context=context)) + \
-            Counter(cls._collection_instances(context=context)) + \
-            Counter(sp_collection_instances_all)
-        for item in dict(sp_collections).items():
-            if not item[0].specification_skip and not (context.window_manager.specification_skip_empty and cls._empty(item[0].specification)):
-                row = [i,] + cls._export_row(context=context, fields=item[0].specification) + [item[1],]
-                if object_names:
-                    row.insert(1, item[0].name)
-                body.append(row)
-                i += 1
         try:
             with open(file=output_path, mode='w', newline='') as csv_file:
                 writer = csv.writer(csv_file, delimiter=cls._csv_delimiter)
-                writer.writerow(header)
-                for row in body:
+                for row in cls._export_body(context=context, object_names=object_names):
                     writer.writerow(row)
         except IOError as error:
             bpy.ops.specification_sheet.messagebox('INVOKE_DEFAULT', message='Can\'t write to file!')
@@ -176,6 +140,47 @@ class SpecificationSheet:
         line_break = context.preferences.addons[__package__].preferences.line_break_char
         row = [field.value.replace(line_break, '\n') if field.name in cls._specification_fields(context=context) else '' for field in fields]
         return row
+
+    @classmethod
+    def _export_body(cls, context, object_names=False):
+        # table body fro export specification
+        if hasattr(context.window_manager, 'specification_add_obj_names'):
+            object_names = context.window_manager.specification_add_obj_names
+        # header
+        header = ['',] + cls._export_header(context=context) + ['Amount',]
+        if object_names:
+            header.insert(1, 'Objects')
+        # body
+        body = []
+        # objects with counted instances
+        number = 1
+        if 'OBJECTS' in context.window_manager.specification_object_types:
+            sp_objects = Counter(cls._specificated_objects(context=context, remove_instances=False))
+            for item in dict(sp_objects).items():
+                if not item[0].specification_skip and not (context.window_manager.specification_skip_empty and cls._empty(item[0].specification)):
+                    row = [number,] + cls._export_row(context=context, fields=item[0].specification) + [item[1],]
+                    if object_names:
+                        row.insert(1, item[0].name)
+                    body.append(row)
+                    number += 1
+        # collections with counted instances
+        if 'COLLECTIONS' in context.window_manager.specification_object_types:
+            sp_collection_instances = cls._collection_instances(context=context)
+            sp_collection_instances_all = []
+            for col in sp_collection_instances:
+                sp_collection_instances_all += cls._collections_inner(collection=col)
+            # collections + collection instances + inner collections in instances
+            sp_collections = Counter(cls._scene_collections(context=context)) + \
+                Counter(cls._collection_instances(context=context)) + \
+                Counter(sp_collection_instances_all)
+            for item in dict(sp_collections).items():
+                if not item[0].specification_skip and not (context.window_manager.specification_skip_empty and cls._empty(item[0].specification)):
+                    row = [number,] + cls._export_row(context=context, fields=item[0].specification) + [item[1],]
+                    if object_names:
+                        row.insert(1, item[0].name)
+                    body.append(row)
+                    number += 1
+        return [header,] + body
 
     @staticmethod
     def _specificated_objects(context, objects=None, remove_instances=True):

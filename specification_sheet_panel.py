@@ -20,6 +20,8 @@ class SPECIFICATION_SHEET_PT_panel(Panel):
         box = layout.box()
         box.label(text='Export')
         box.operator('specification_sheet.specification_to_csv', icon='EXPORT')
+        row = box.row()
+        row.prop(data=context.window_manager, property='specification_object_types', expand=True)
         box.prop(data=context.window_manager, property='specification_add_obj_names', text='With objects names')
         box.prop(data=context.window_manager, property='specification_skip_empty', text='Skip empty')
 
