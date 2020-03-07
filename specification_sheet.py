@@ -10,8 +10,6 @@ import csv
 import os
 import tempfile
 
-# ToDo - кнопка select all specificated (заполненно хоть одно поле)
-
 
 class SpecificationSheet:
 
@@ -114,6 +112,15 @@ class SpecificationSheet:
                     other_field.value = field.value
 
     @classmethod
+    def object_select_empty(cls, context):
+        # select all objects with empty specification fields
+        for obj in context.scene.objects:
+            if hasattr(obj.data, 'specification') and cls._empty(obj.data.specification):
+                obj.select_set(True)
+            else:
+                obj.select_set(False)
+
+    @classmethod
     def export_to_csv(cls, context):
         # export specification to csv file
         output_path = os.path.join(cls.output_path(path=context.scene.render.filepath), cls._export_file_name + '.csv')
@@ -142,11 +149,15 @@ class SpecificationSheet:
                              + '" type="text/css" rel="stylesheet">'
                 html_body += '</head>'
                 html_body += '<body>'
+                html_body += '<div class="sp_title">Table of specification</div>'
+                if context.window_manager.specification_add_project_info:
+                    html_body += '<div class="sp_project_name">Blender project: ' + os.path.splitext(os.path.basename(bpy.data.filepath))[0] + '</div>'
+                    html_body += '<div class="sp_project_filepath">File: ' + os.path.abspath(bpy.data.filepath) + '</div>'
                 html_body += '<table class="sp_table">'
                 for row in cls._export_body(context=context):
                     html_body += '<tr>'
                     for cell in row:
-                        html_body += '<td>' if row[0] else ('<th class="' + cell.lower() + '">')
+                        html_body += '<td>' if row[0] else ('<th class="' + (cell.lower() if cell else 'number') + '">')
                         html_body += str(cell).replace('\n', '<br>')
                         html_body += '</td>' if row[0] else '</th>'
                     html_body += '</tr>'
@@ -162,9 +173,13 @@ class SpecificationSheet:
         try:
             with open(file=output_path, mode='w', newline='') as css_file:
                 css_body = 'body{font-family: "' + context.preferences.addons[__package__].preferences.output_font_name + '"; margin: 5px;}'
+                css_body += '.sp_title{text-align: center; font-weight: bold; margin: 25px}'
+                css_body += '.sp_project_name, .sp_project_filepath {width: 90%; display: block; margin-left: auto; margin-right: auto; margin-bottom: 10px}'
                 css_body += '.sp_table{width: 90%; border: 1px solid black; margin: 0 auto;}'
                 css_body += '.sp_table th {border: 1px solid black;}'
                 css_body += '.sp_table td {border: 1px solid black;}'
+                css_body += '.sp_table .number {width: 30px;}'
+                css_body += '.sp_table .amount {width: 60px;}'
                 for cell in cls._export_header(context=context):
                     css_body += '.sp_table .' + cell.lower() + ' {width: ' + str(cls._specification_field_by_name(cell, context.scene.specification_fields).width) + '%}'
                 # write to file

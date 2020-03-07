@@ -25,6 +25,7 @@ class SPECIFICATION_SHEET_PT_panel(Panel):
         row.prop(data=context.window_manager, property='specification_object_types', expand=True)
         box.prop(data=context.window_manager, property='specification_add_obj_names', text='With objects names')
         box.prop(data=context.window_manager, property='specification_skip_empty', text='Skip empty')
+        box.prop(data=context.window_manager, property='specification_add_project_info', text='Project info')
 
 
 class SPECIFICATION_SHEET_PT_fields_panel(Panel):
@@ -42,6 +43,8 @@ class SPECIFICATION_SHEET_PT_fields_panel(Panel):
         col.operator('specification_sheet.remove_active_field', icon='REMOVE', text='')
         col.separator()
         col.operator('specification_sheet.fields_to_objects', icon='MOD_PARTICLES', text='')
+        col.separator()
+        col.operator('specification_sheet.object_select_empty', icon='BORDERMOVE', text='')
 
 
 class SPECIFICATION_SHEET_PT_object_panel(Panel):

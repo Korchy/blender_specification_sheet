@@ -9,28 +9,6 @@ from bpy.utils import register_class, unregister_class
 from .specification_sheet import SpecificationSheet
 
 
-class SPECIFICATION_SHEET_OT_object_active_to_selection(Operator):
-    bl_idname = 'specification_sheet.object_active_to_selection'
-    bl_label = 'Object: active to selection'
-    bl_description = 'Copy specification text from active object to all selection'
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        # copy specification text from active object to all the selection
-        SpecificationSheet.object_active_to_other(
-            context=context,
-            active_object=context.active_object,
-            other=context.selected_objects
-        )
-        return {'FINISHED'}
-
-    @classmethod
-    def poll(cls, context):
-        return bool(context.active_object) \
-               and hasattr(context.active_object.data, 'specification') \
-               and len(context.selected_objects) > 1
-
-
 class SPECIFICATION_SHEET_OT_specification_to_csv(Operator):
     bl_idname = 'specification_sheet.specification_to_csv'
     bl_label = 'CSV'
@@ -114,6 +92,42 @@ class  SPECIFICATION_SHEET_OT_fields_to_objects(Operator):
         return {'FINISHED'}
 
 
+class SPECIFICATION_SHEET_OT_object_active_to_selection(Operator):
+    bl_idname = 'specification_sheet.object_active_to_selection'
+    bl_label = 'Object: active to selection'
+    bl_description = 'Copy specification text from active object to all selection'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        # copy specification text from active object to all the selection
+        SpecificationSheet.object_active_to_other(
+            context=context,
+            active_object=context.active_object,
+            other=context.selected_objects
+        )
+        return {'FINISHED'}
+
+    @classmethod
+    def poll(cls, context):
+        return bool(context.active_object) \
+               and hasattr(context.active_object.data, 'specification') \
+               and len(context.selected_objects) > 1
+
+
+class SPECIFICATION_SHEET_OT_object_select_empty(Operator):
+    bl_idname = 'specification_sheet.object_select_empty'
+    bl_label = 'Object: select empty'
+    bl_description = 'Select all objects with empty specification fields'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        # select all objects with empty specification
+        SpecificationSheet.object_select_empty(
+            context=context
+        )
+        return {'FINISHED'}
+
+
 def register():
     register_class(SPECIFICATION_SHEET_OT_object_active_to_selection)
     register_class(SPECIFICATION_SHEET_OT_specification_to_csv)
@@ -121,9 +135,11 @@ def register():
     register_class(SPECIFICATION_SHEET_OT_add_new_field)
     register_class(SPECIFICATION_SHEET_OT_remove_active_field)
     register_class(SPECIFICATION_SHEET_OT_fields_to_objects)
+    register_class(SPECIFICATION_SHEET_OT_object_select_empty)
 
 
 def unregister():
+    unregister_class(SPECIFICATION_SHEET_OT_object_select_empty)
     unregister_class(SPECIFICATION_SHEET_OT_fields_to_objects)
     unregister_class(SPECIFICATION_SHEET_OT_remove_active_field)
     unregister_class(SPECIFICATION_SHEET_OT_add_new_field)

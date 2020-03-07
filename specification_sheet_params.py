@@ -97,9 +97,14 @@ def register():
         default={'OBJECTS', 'COLLECTIONS'},
         options={'ENUM_FLAG'}
     )
+    WindowManager.specification_add_project_info = BoolProperty(
+        description='Add project info to specification',
+        default=True
+    )
 
 
 def unregister():
+    del WindowManager.specification_add_project_info
     del WindowManager.specification_object_types
     del WindowManager.specification_skip_empty
     del WindowManager.specification_add_obj_names
