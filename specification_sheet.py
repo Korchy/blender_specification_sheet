@@ -125,7 +125,7 @@ class SpecificationSheet:
         # export specification to csv file
         output_path = os.path.join(cls.output_path(path=context.scene.render.filepath), cls._export_file_name + '.csv')
         try:
-            with open(file=output_path, mode='w', newline='') as csv_file:
+            with open(file=output_path, mode='w', newline='', encoding='utf8') as csv_file:
                 writer = csv.writer(csv_file, delimiter=cls._csv_delimiter)
                 for row in cls._export_body(context=context):
                     writer.writerow(row)
@@ -138,7 +138,7 @@ class SpecificationSheet:
         output_path = os.path.join(cls.output_path(path=context.scene.render.filepath), cls._export_file_name + '.html')
         # html file
         try:
-            with open(file=output_path, mode='w', newline='') as html_file:
+            with open(file=output_path, mode='w', newline='', encoding='utf8') as html_file:
                 html_body = '<html>'
                 html_body += '<head>'
                 html_body += '<title>' + 'Project specification' + '</title>'
@@ -171,7 +171,7 @@ class SpecificationSheet:
         # css file
         output_path = os.path.join(cls.output_path(path=context.scene.render.filepath), cls._export_file_name + '.css')
         try:
-            with open(file=output_path, mode='w', newline='') as css_file:
+            with open(file=output_path, mode='w', newline='', encoding='utf8') as css_file:
                 css_body = 'body{font-family: "' + context.preferences.addons[__package__].preferences.output_font_name + '"; margin: 5px;}'
                 css_body += '.sp_title{text-align: center; font-weight: bold; margin: 25px}'
                 css_body += '.sp_project_name, .sp_project_filepath {width: 90%; display: block; margin-left: auto; margin-right: auto; margin-bottom: 10px}'
