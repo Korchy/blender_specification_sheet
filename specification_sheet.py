@@ -114,7 +114,7 @@ class SpecificationSheet:
     @classmethod
     def object_select_empty(cls, context):
         # select all objects with empty specification fields
-        for obj in context.scene.objects:
+        for obj in bpy.data.objects:
             if hasattr(obj.data, 'specification') and cls._empty(obj.data.specification):
                 obj.select_set(True)
             else:
@@ -245,7 +245,7 @@ class SpecificationSheet:
     def _specificated_objects(context, objects=None, remove_instances=True):
         # return all objects with specification without instances
         if not objects:
-            objects = context.scene.objects     # all from scene
+            objects = bpy.data.objects     # all
         if remove_instances:
             return {obj.data for obj in objects if hasattr(obj.data, 'specification')}
         else:
@@ -259,7 +259,7 @@ class SpecificationSheet:
     @classmethod
     def _collection_instances(cls, context):
         # return all collections for collection instances
-        return (c_instance.instance_collection for c_instance in context.scene.objects if c_instance.instance_collection)
+        return (c_instance.instance_collection for c_instance in bpy.data.objects if c_instance.instance_collection)
 
     @classmethod
     def _collections_all(cls, collection, col_list):
