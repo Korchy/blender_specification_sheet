@@ -10,8 +10,6 @@ import csv
 import os
 import tempfile
 
-# ToDo - понять как работает collection instance (is_instancer)
-
 # ToDo - кнопка select all specificated (заполненно хоть одно поле)
 
 
@@ -116,14 +114,61 @@ class SpecificationSheet:
                     other_field.value = field.value
 
     @classmethod
-    def export_to_csv(cls, context, object_names=False):
+    def export_to_csv(cls, context):
         # export specification to csv file
         output_path = os.path.join(cls.output_path(path=context.scene.render.filepath), cls._export_file_name + '.csv')
         try:
             with open(file=output_path, mode='w', newline='') as csv_file:
                 writer = csv.writer(csv_file, delimiter=cls._csv_delimiter)
-                for row in cls._export_body(context=context, object_names=object_names):
+                for row in cls._export_body(context=context):
                     writer.writerow(row)
+        except IOError as error:
+            bpy.ops.specification_sheet.messagebox('INVOKE_DEFAULT', message='Can\'t write to file!')
+
+    @classmethod
+    def export_to_html(cls, context):
+        # export specification to html file
+        output_path = os.path.join(cls.output_path(path=context.scene.render.filepath), cls._export_file_name + '.html')
+        # html file
+        try:
+            with open(file=output_path, mode='w', newline='') as html_file:
+                html_body = '<html>'
+                html_body += '<head>'
+                html_body += '<title>' + 'Project specification' + '</title>'
+                html_body += '<meta http-equiv="content-type" content="text/html; charset = utf-8">'
+                html_body += '<link href="specification.css" type="text/css" rel="stylesheet">'
+                html_body += '<link href="https://fonts.googleapis.com/css?family=' \
+                             + context.preferences.addons[__package__].preferences.output_font_name.replace(' ', '+') \
+                             + '" type="text/css" rel="stylesheet">'
+                html_body += '</head>'
+                html_body += '<body>'
+                html_body += '<table class="sp_table">'
+                for row in cls._export_body(context=context):
+                    html_body += '<tr>'
+                    for cell in row:
+                        html_body += '<td>' if row[0] else ('<th class="' + cell.lower() + '">')
+                        html_body += str(cell).replace('\n', '<br>')
+                        html_body += '</td>' if row[0] else '</th>'
+                    html_body += '</tr>'
+                html_body += '</table>'
+                html_body += '</body>'
+                html_body += '</html>'
+                # write to file
+                html_file.write(html_body)
+        except IOError as error:
+            bpy.ops.specification_sheet.messagebox('INVOKE_DEFAULT', message='Can\'t write to file!')
+        # css file
+        output_path = os.path.join(cls.output_path(path=context.scene.render.filepath), cls._export_file_name + '.css')
+        try:
+            with open(file=output_path, mode='w', newline='') as css_file:
+                css_body = 'body{font-family: "' + context.preferences.addons[__package__].preferences.output_font_name + '"; margin: 5px;}'
+                css_body += '.sp_table{width: 90%; border: 1px solid black; margin: 0 auto;}'
+                css_body += '.sp_table th {border: 1px solid black;}'
+                css_body += '.sp_table td {border: 1px solid black;}'
+                for cell in cls._export_header(context=context):
+                    css_body += '.sp_table .' + cell.lower() + ' {width: ' + str(cls._specification_field_by_name(cell, context.scene.specification_fields).width) + '%}'
+                # write to file
+                css_file.write(css_body)
         except IOError as error:
             bpy.ops.specification_sheet.messagebox('INVOKE_DEFAULT', message='Can\'t write to file!')
 
@@ -142,10 +187,9 @@ class SpecificationSheet:
         return row
 
     @classmethod
-    def _export_body(cls, context, object_names=False):
+    def _export_body(cls, context):
         # table body fro export specification
-        if hasattr(context.window_manager, 'specification_add_obj_names'):
-            object_names = context.window_manager.specification_add_obj_names
+        object_names = context.window_manager.specification_add_obj_names
         # header
         header = ['',] + cls._export_header(context=context) + ['Amount',]
         if object_names:
@@ -235,6 +279,11 @@ class SpecificationSheet:
     def _field_by_name(name, fields):
         # return field by field name
         return next((field for field in fields if field.name == name), None)
+
+    @staticmethod
+    def _specification_field_by_name(name, fields):
+        # return specification field by field name
+        return next((field for field in fields if field.field_name == name), None)
 
     @staticmethod
     def output_path(path):

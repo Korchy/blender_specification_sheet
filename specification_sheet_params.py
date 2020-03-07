@@ -24,6 +24,13 @@ class SPECIFICATION_SHEET_fields(PropertyGroup):
         default=''
     )
 
+    width: IntProperty(
+        default=0,
+        min=0,
+        max=100,
+        subtype='PERCENTAGE'
+    )
+
     @staticmethod
     def _field_name_update(self, context):
         # field_name update

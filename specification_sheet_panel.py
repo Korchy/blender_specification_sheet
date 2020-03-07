@@ -20,6 +20,7 @@ class SPECIFICATION_SHEET_PT_panel(Panel):
         box = layout.box()
         box.label(text='Export')
         box.operator('specification_sheet.specification_to_csv', icon='EXPORT')
+        box.operator('specification_sheet.specification_to_html', icon='EXPORT')
         row = box.row()
         row.prop(data=context.window_manager, property='specification_object_types', expand=True)
         box.prop(data=context.window_manager, property='specification_add_obj_names', text='With objects names')
@@ -101,6 +102,7 @@ class SPECIFICATION_SHEET_UL_presets_list(UIList):
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_property, index=0, flt_flag=0):
         layout.prop(data=item, property='field_name', text='', emboss=False)
+        layout.prop(data=item, property='width')
 
 
 class SPECIFICATION_SHEET_UL_object_fields(UIList):

@@ -18,9 +18,15 @@ class SPECIFICATION_SHEET_preferences(AddonPreferences):
         default='#'
     )
 
+    output_font_name: StringProperty(
+        name='Output font name',
+        default='PT Sans'
+    )
+
     def draw(self, context):
         layout = self.layout
         layout.prop(self, 'line_break_char')
+        layout.prop(self, 'output_font_name')
 
 
 def register():

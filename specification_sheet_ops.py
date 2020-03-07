@@ -34,12 +34,28 @@ class SPECIFICATION_SHEET_OT_object_active_to_selection(Operator):
 class SPECIFICATION_SHEET_OT_specification_to_csv(Operator):
     bl_idname = 'specification_sheet.specification_to_csv'
     bl_label = 'CSV'
-    bl_description = 'Save specificaton to CSV file'
+    bl_description = 'Save specification to CSV file'
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         # export specification to csv
         SpecificationSheet.export_to_csv(context=context)
+        return {'FINISHED'}
+
+    @classmethod
+    def poll(cls, context):
+        return bool(context.view_layer.active_layer_collection)
+
+
+class SPECIFICATION_SHEET_OT_specification_to_html(Operator):
+    bl_idname = 'specification_sheet.specification_to_html'
+    bl_label = 'HTML'
+    bl_description = 'Save specification to HTML file'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        # export specification to html
+        SpecificationSheet.export_to_html(context=context)
         return {'FINISHED'}
 
     @classmethod
@@ -101,6 +117,7 @@ class  SPECIFICATION_SHEET_OT_fields_to_objects(Operator):
 def register():
     register_class(SPECIFICATION_SHEET_OT_object_active_to_selection)
     register_class(SPECIFICATION_SHEET_OT_specification_to_csv)
+    register_class(SPECIFICATION_SHEET_OT_specification_to_html)
     register_class(SPECIFICATION_SHEET_OT_add_new_field)
     register_class(SPECIFICATION_SHEET_OT_remove_active_field)
     register_class(SPECIFICATION_SHEET_OT_fields_to_objects)
@@ -110,5 +127,6 @@ def unregister():
     unregister_class(SPECIFICATION_SHEET_OT_fields_to_objects)
     unregister_class(SPECIFICATION_SHEET_OT_remove_active_field)
     unregister_class(SPECIFICATION_SHEET_OT_add_new_field)
+    unregister_class(SPECIFICATION_SHEET_OT_specification_to_html)
     unregister_class(SPECIFICATION_SHEET_OT_specification_to_csv)
     unregister_class(SPECIFICATION_SHEET_OT_object_active_to_selection)
