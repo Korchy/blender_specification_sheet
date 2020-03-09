@@ -115,7 +115,9 @@ class SpecificationSheet:
     def object_select_empty(cls, context):
         # select all objects with empty specification fields
         for obj in bpy.data.objects:
-            if hasattr(obj.data, 'specification') and cls._empty(obj.data.specification):
+            if hasattr(obj.data, 'specification') \
+                    and cls._empty(obj.data.specification) \
+                    and obj in context.window.view_layer.objects[:]:
                 obj.select_set(True)
             else:
                 obj.select_set(False)
